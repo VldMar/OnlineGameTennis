@@ -19,7 +19,7 @@ namespace Game_version_1
         private int score1 = 0;
         private int score2 = 0;
 
-        // lolololol
+       
         public Game1()
         {
             InitializeComponent();
