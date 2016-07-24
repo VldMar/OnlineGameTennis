@@ -28,7 +28,7 @@ namespace Game_version_1
             ball.Width = 25;
         }
 
-
+        //lololo
         //метод для рисования границ стола и сетки
         private void DrawAxes(Graphics g)
         {
