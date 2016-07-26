@@ -1,5 +1,4 @@
-﻿;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,29 +21,29 @@ namespace Game_version_1
     {
         private int speed_of_ballX = 4;
         private int speed_of_ballY = 4;
-        private bool status = true;
-        private int score1 = 0;
+        private bool status = true; // не помню нах эта хрень, но чо-то с ограничением движения ракеток
+        private int score1 = 0;// счет первого игока, а след строка второго
         private int score2 = 0;
 
-        private bool isServ;
-        private static bool FlagStart = false;
-        public static int id = 0;
-        public static Thread th;
+        public static bool FlagStart = false; // нужна для запуска таймера
+        public static int id = 0;// отпределить за какую ракетку играть(1 - первая, 2- вторая)
+        public static Thread th;// поток для запуска игры, сам не понял, нахер нужно
 
-        private static int Player1_racket1, Player2_racket2;
+        public static int Player1_racket1, Player2_racket2; //определяют координаты ракетки
 
-        public static string ip = null, port = null, nickname = null;
+        public static string ip = null, port = null, nickname = null; //пока не нужны и не важно, беруться из другой формы,
 
-        public static TcpClient client;
+        public static TcpClient client;// ну здесь все понятно
         public static NetworkStream stream;
-
+        Clinentt clie;
 
         public Game1()
         {
             FormUnderMenu fum = new FormUnderMenu();
-            fum.ShowDialog();
+            fum.ShowDialog();// ничего не вводи, все равно я пока не использую эти значения, потом пригодиться, когда с ракетками разберусь
 
-            th = new Thread(new ThreadStart(StartAsClient));
+            clie = new Clinentt();
+            th = new Thread(new ThreadStart(clie.Start));// запускаем поток, то бишь игру в качестве клиента
 
             InitializeComponent();
 
@@ -60,16 +59,6 @@ namespace Game_version_1
 
         }
 
-        public static int ReceiveNumb()
-        {
-            byte[] data = new byte[32];
-            stream.Read(data, 0, data.Length);
-            string rec = Encoding.Unicode.GetString(data);
-            int number = int.Parse(rec);
-            return number;
-
-        }
-
         //делаем шар круглым при помощи события paint
         private void ball_paint(object sender, PaintEventArgs e)
         {
@@ -77,96 +66,6 @@ namespace Game_version_1
             shape.AddEllipse(0, 0, ball.Width, ball.Height);
             ball.Region = new Region(shape);
         }
-
-
-
-        public static void StartAsClient()
-        {
-            client = new TcpClient();
-            client.Connect(IPAddress.Parse("192.168.0.2"), 8005);//пока так, чтобы не терять время и сразу проверять работу программы
-            stream = client.GetStream();
-            int number = ReceiveNumb();
-            if (number == 1)
-            {
-                id = 1;
-            }
-            else if (number == 2)
-            {
-                id = 2;
-            }
-            if (client.Connected)
-            {
-                FlagStart = true;
-                try
-                {
-                    if (id == 1)
-                    {
-                        SendMessage((Player1_racket1).ToString());
-                        ReceiveMess2();
-
-                    }
-                    else if (id == 2)
-                    {
-                        SendMessage((Player2_racket2).ToString());
-                        ReceiveMess1();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Disconnect();
-                    MessageBox.Show(ex.Message + "\n\n" + ex.InnerException + "\n\n" + ex.Source, "Client error");
-                    Application.Exit();
-                }
-            }
-            else
-            {
-                MessageBox.Show("Невозможно подлкючиться");
-            }
-
-        }
-
-
-        private static void SendMessage(string mess)
-        {
-            byte[] data = Encoding.Unicode.GetBytes(mess);
-            stream.Write(data, 0, data.Length);
-
-
-        }
-
-        private static void ReceiveMess1()
-        {
-            while (true)
-            {
-                byte[] data = new byte[128];
-                stream.Read(data, 0, data.Length);
-                string rec = Encoding.Unicode.GetString(data);
-                Player1_racket1 = Convert.ToInt16(rec);
-            }
-
-        }
-
-        private static void ReceiveMess2()
-        {
-            while (true)
-            {
-                byte[] data = new byte[128];
-                stream.Read(data, 0, data.Length);
-                string rec = Encoding.Unicode.GetString(data);
-                Player2_racket2 = Convert.ToInt16(rec);
-            }
-
-        }
-
-        private static void Disconnect()
-        {
-            if (stream != null)
-                stream.Close();
-            if (client != null)
-                client.Close();
-        }
-
-
 
         //метод для рисования границ стола и сетки
         private void DrawAxes(Graphics g)
@@ -189,6 +88,8 @@ namespace Game_version_1
         }
 
 
+        //здесь просто обрабатываются нажатия разных клавиш
+        // а как нажали, изменились координаты и мы их сразу отправляем серваку
         private void Game1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyData == Keys.Escape) { this.Close(); th.Abort(); }
@@ -200,17 +101,17 @@ namespace Game_version_1
 
                 racket2.Top = Player2_racket2;
                 if (e.KeyData == Keys.W && status)
-                { racket1.Top -= (racket1.Height / 2 + 5); Player1_racket1 = racket1.Top; SendMessage(Player1_racket1.ToString()); }
+                { racket1.Top -= (racket1.Height / 2 + 5); Player1_racket1 = racket1.Top; clie.SendMessage(Player1_racket1.ToString()); }
                 //ставим ограничение на передвижение ракетки по верхнему краю стола
                 if (racket1.Top <= panel1.Top - 5)
                 {
                     status = false;
                     if (e.KeyData == Keys.S)
-                    { status = true; racket1.Top += (racket1.Height / 2 + 5); Player1_racket1 = racket1.Top; SendMessage(Player1_racket1.ToString()); }
+                    { status = true; racket1.Top += (racket1.Height / 2 + 5); Player1_racket1 = racket1.Top; clie.SendMessage(Player1_racket1.ToString()); }
 
                 }
                 if (e.KeyData == Keys.S && status)
-                { racket1.Top += (racket1.Height / 2 + 5); Player1_racket1 = racket1.Top; SendMessage(Player1_racket1.ToString()); }
+                { racket1.Top += (racket1.Height / 2 + 5); Player1_racket1 = racket1.Top; clie.SendMessage(Player1_racket1.ToString()); }
 
 
 
@@ -219,11 +120,12 @@ namespace Game_version_1
                 {
                     status = false;
                     if (e.KeyData == Keys.W)
-                    { status = true; racket1.Top -= (racket2.Height / 2 + 5); Player1_racket1 = racket1.Top; SendMessage(Player1_racket1.ToString()); }
+                    { status = true; racket1.Top -= (racket2.Height / 2 + 5); Player1_racket1 = racket1.Top; clie.SendMessage(Player1_racket1.ToString()); }
                 }
 
             }
 
+            // здесь та же хрень, только о другой ракетке отправляем инфу
 
             // аналогично задаем движение второй ракетки по столу
             //с использованием кнопок Up и Down
@@ -234,25 +136,31 @@ namespace Game_version_1
 
 
                 if (e.KeyData == Keys.Up && status)
-                { racket2.Top -= racket2.Height / 2; Player2_racket2 = racket2.Top; SendMessage((Player2_racket2 + 34).ToString()); }
+                { racket2.Top -= racket2.Height / 2; Player2_racket2 = racket2.Top; clie.SendMessage((Player2_racket2 + 34).ToString()); }
 
                 if (racket2.Top <= panel1.Top - 5)
                 {
                     status = false;
                     if (e.KeyData == Keys.Down)
-                    { status = true; racket2.Top += racket2.Height / 2; Player2_racket2 = racket2.Top; SendMessage((Player2_racket2 + 34).ToString()); }
+                    { status = true; racket2.Top += racket2.Height / 2; Player2_racket2 = racket2.Top; clie.SendMessage((Player2_racket2 + 34).ToString()); }
                 }
                 if (e.KeyData == Keys.Down && status)
-                { racket2.Top += racket2.Height / 2; Player2_racket2 = racket2.Top; SendMessage((Player2_racket2 + 34).ToString()); }
+                { racket2.Top += racket2.Height / 2; Player2_racket2 = racket2.Top; clie.SendMessage((Player2_racket2 + 34).ToString()); }
 
                 if (racket2.Bottom >= panel1.Bottom + 5)
                 {
                     status = false;
-                    if (e.KeyData == Keys.Up) { status = true; racket2.Top -= racket2.Height / 2; Player2_racket2 = racket2.Top; SendMessage((Player2_racket2 + 34).ToString()); }
+                    if (e.KeyData == Keys.Up) { status = true; racket2.Top -= racket2.Height / 2; Player2_racket2 = racket2.Top; clie.SendMessage((Player2_racket2 + 34).ToString()); }
 
                 }
             }
         }
+
+        // рисуем на панели: 
+        // границы и перерисовыавем ракетки, если меняются координаты
+        // так должно быть в идеале, но чет так не выходит
+
+
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -270,7 +178,8 @@ namespace Game_version_1
         }
 
 
-
+        // просто запускаем мяч, даже можешь не читать, здесь все норм
+        // не запускаю, чтобы мяч не мешался
         private void timer1_Tick(object sender, EventArgs e)
         {
             timer1.Enabled = false;
@@ -288,38 +197,7 @@ namespace Game_version_1
                 CollisionRacket();
 
                 // проверяем на проигрышь
-                if (ball.Right >= panel1.Right - 5)
-                {
-                    if (score1 < 11)
-                    {
-                        score1 += 1;
-                        lblscore.Text = score1.ToString();
-                        ball.Location = new Point(475, 125);
-                    }
-                    else
-                    {
-                        timer1.Enabled = false;
-                        MessageBox.Show("Player1 isWinner!");
-
-                    }
-
-                }
-
-                if (ball.Left <= panel1.Left + 5)
-                {
-                    if (score2 < 11)
-                    {
-                        score2 += 1;
-                        lbl2_score.Text = score2.ToString();
-                        ball.Location = new Point(475, 125);
-                    }
-                    else
-                    {
-                        timer1.Enabled = false;
-                        MessageBox.Show("Player2 isWinner!");
-                    }
-
-                }
+                WinOrLose();
 
 
                 if (ball.Top <= panel1.Top + 10)
@@ -332,13 +210,50 @@ namespace Game_version_1
 
         }
 
+
+        //как нажимаем клавишу подлкючиться, запускаемся как клиент
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             th.Start();
             menuStrip1.Enabled = false;
         }
 
-        //------------------------------------------------
+
+
+        private void WinOrLose()
+        {
+            if (ball.Right >= panel1.Right - 5)
+            {
+                if (score1 < 11)
+                {
+                    score1 += 1;
+                    lblscore.Text = score1.ToString();
+                    ball.Location = new Point(475, 125);
+                }
+                else
+                {
+                    timer1.Enabled = false;
+                    MessageBox.Show(label1.Text + "isWinner!");
+                }
+            }
+
+            if (ball.Left <= panel1.Left + 5)
+            {
+                if (score2 < 11)
+                {
+                    score2 += 1;
+                    lbl2_score.Text = score2.ToString();
+                    ball.Location = new Point(475, 125);
+                }
+                else
+                {
+                    timer1.Enabled = false;
+                    MessageBox.Show(label2.Text + "isWinner!");
+                }
+
+            }
+        }
+        //------------------------------------------------ столкновение со столом мяча
         private void CollisionTable()
         {
             if (ball.Bottom <= panel1.Bottom)
@@ -351,6 +266,8 @@ namespace Game_version_1
             }
         }
 
+
+        //столкновение с ракеткой мяча
         private void CollisionRacket()
         {
 
@@ -359,6 +276,8 @@ namespace Game_version_1
             if (ball.Left <= racket1.Right && ball.Right >= racket1.Left && ball.Bottom <= racket1.Bottom && ball.Top >= racket1.Top)
                 speed_of_ballX = -speed_of_ballX;
         }
+
+        //нах не нужно, убирать так лень, что просто жесть
         private void racket2_LocationChanged(object sender, EventArgs e)
         {
         }
