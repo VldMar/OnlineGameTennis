@@ -1,0 +1,12 @@
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\bin\Debug\Game_version_1.exe.config
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\bin\Debug\Game_version_1.exe
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\bin\Debug\Game_version_1.pdb
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.Properties.Resources.resources
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.csproj.GenerateResource.Cache
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.exe
+c:\users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.pdb
+C:\Users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.FormMenu.resources
+C:\Users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.Game1.resources
+C:\Users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.FormServer.resources
+C:\Users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.FormUnderMenu.resources
+C:\Users\user\documents\visual studio 2015\Projects\Game_version_1\Game_version_1\obj\Debug\Game_version_1.csprojResolveAssemblyReference.cache
